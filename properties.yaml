@@ -1,5 +1,5 @@
 ---
-package : com.example
-project : my-project
-description : ~
-project_url : ~
+package : net.avh4.test
+project : court-reporter
+description : Record methor invocations for an entire object graph
+project_url : http://github.com/avh4/court-reporter
