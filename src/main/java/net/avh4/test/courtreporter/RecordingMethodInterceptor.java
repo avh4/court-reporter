@@ -42,15 +42,11 @@ class RecordingMethodInterceptor implements MethodInterceptor {
     }
 
     private static <R> InstantiationStrategy<R> determineInstantiationStrategy(final Class<? extends R> actualType, Class<R> requiredType) {
-        if (DefaultConstructorInstantiationStrategy.isValid(actualType)) {
-            return new DefaultConstructorInstantiationStrategy<>(actualType);
+        if (ObjenesisInstantiationStrategy.isValid(actualType)) {
+            return new ObjenesisInstantiationStrategy<>(actualType);
         }
 
-        if (NonDefaultConstructorInstantiationStrategy.isValid(actualType)) {
-            return new NonDefaultConstructorInstantiationStrategy<>(actualType);
-        }
-
-        return new DefaultConstructorInstantiationStrategy<>(requiredType);
+        return new ObjenesisInstantiationStrategy<>(requiredType);
     }
 
     private RecordingMethodInterceptor(Object originalObject, StringBuffer recording, String objectName) {
