@@ -1,12 +1,16 @@
 package net.avh4.test.courtreporter;
 
+import net.sf.cglib.proxy.Callback;
 import net.sf.cglib.proxy.Enhancer;
+import net.sf.cglib.proxy.Factory;
 import net.sf.cglib.proxy.MethodInterceptor;
+import org.objenesis.ObjenesisStd;
 
 import java.lang.reflect.Modifier;
 
 class DefaultConstructorInstantiationStrategy<T> implements InstantiationStrategy<T> {
     private final Class<? extends T> typeToCreate;
+    private final ObjenesisStd objenesis = new ObjenesisStd();
 
     public DefaultConstructorInstantiationStrategy(Class<? extends T> typeToCreate) {
         if (!isValid(typeToCreate)) {
@@ -33,9 +37,14 @@ class DefaultConstructorInstantiationStrategy<T> implements InstantiationStrateg
     public T execute(MethodInterceptor interceptor) {
         Enhancer enhancer = new Enhancer();
         enhancer.setSuperclass(typeToCreate);
-        enhancer.setCallback(interceptor);
+        enhancer.setCallbackTypes(new Class[]{MethodInterceptor.class});
 
         //noinspection unchecked
-        return (T) enhancer.create();
+        Class<? extends T> proxyClass = (Class<? extends T>) enhancer.createClass();
+
+        //noinspection unchecked
+        final T proxy = (T) objenesis.newInstance(proxyClass);
+        ((Factory) proxy).setCallbacks(new Callback[]{interceptor});
+        return proxy;
     }
 }

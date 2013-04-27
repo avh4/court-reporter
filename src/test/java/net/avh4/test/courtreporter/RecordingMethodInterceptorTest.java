@@ -63,6 +63,15 @@ public class RecordingMethodInterceptorTest {
         assertThat(o).isInstanceOf(PrivateTestClass.class);
     }
 
+    @Test
+    public void someClassWithUncallableConstructor_shouldRecord() {
+        final TestClass o = RecordingMethodInterceptor.wrapObject(new UncallableConstructorTestClass(), TestClass.class, recording, "$");
+
+        o.performAction();
+
+        assertThat(recording.toString()).isEqualTo("$.performAction()\n");
+    }
+
     public static class TestClass {
         public void performAction() {
         }
@@ -70,6 +79,14 @@ public class RecordingMethodInterceptorTest {
 
     private static class PrivateTestClass extends TestClass {
         protected PrivateTestClass(String secretArgument) {
+        }
+    }
+
+    public static class UncallableConstructorTestClass extends TestClass {
+        public UncallableConstructorTestClass() {
+            if (!getClass().equals(UncallableConstructorTestClass.class)) {
+                throw new RuntimeException("No subclasses allowed");
+            }
         }
     }
 }
