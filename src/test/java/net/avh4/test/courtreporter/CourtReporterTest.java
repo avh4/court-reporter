@@ -10,22 +10,24 @@ import static org.fest.assertions.Assertions.assertThat;
 
 public class CourtReporterTest {
 
-    private CourtReporter<ArrayList<String>> subject;
+    private CourtReporter subject;
+    private StringBuffer recording;
     private ArrayList<String> array;
     private ArrayList<String> originalArray;
 
     @Before
     public void setUp() {
+        recording = new StringBuffer();
         originalArray = new ArrayList<>();
-        subject = new CourtReporter<>(originalArray);
-        array = subject.getWrappedObject();
+        subject = new CourtReporter();
+        array = subject.wrapObject(originalArray, recording);
     }
 
     @Test
     public void shouldRecordMethodCallWithStringArgument() {
         array.add("First Place");
 
-        assertThat(subject.getRecording()).isEqualTo("$.add(\"First Place\") -> true\n");
+        assertThat(recording.toString()).isEqualTo("$.add(\"First Place\") -> true\n");
     }
 
     @Test
@@ -33,7 +35,7 @@ public class CourtReporterTest {
         array.add("First Place");
         array.remove(0);
 
-        assertThat(subject.getRecording()).isEqualTo("" +
+        assertThat(recording.toString()).isEqualTo("" +
                 "$.add(\"First Place\") -> true\n" +
                 "$.remove(0) -> \"First Place\"\n");
     }
@@ -46,48 +48,43 @@ public class CourtReporterTest {
 
     @Test
     public void shouldProxyTheOriginalObject() {
-        subject = new CourtReporter<>(new ArrayList<>(ImmutableList.of("A", "B")));
-        array = subject.getWrappedObject();
+        array = subject.wrapObject(new ArrayList<>(ImmutableList.of("A", "B")), recording);
         assertThat(array).isEqualTo(ImmutableList.of("A", "B"));
     }
 
     @Test
     public void shouldWrapClassesWithNoDefaultConstructor() {
-        Object o = new ObjectWithNoDefaultConstructor("String", 7);
-        final CourtReporter<Object> subject = new CourtReporter<>(o);
-        assertThat(subject).isNotNull();
+        Object o = subject.wrapObject(new ObjectWithNoDefaultConstructor("String", 7), recording);
+        assertThat(o).isNotNull();
     }
 
     @Test
     public void shouldRecordObjectReturnValues() {
-        final CourtReporter<MyCollection> subject = new CourtReporter<>(new MyCollection());
-        MyCollection o = subject.getWrappedObject();
+        MyCollection o = subject.wrapObject(new MyCollection(), recording);
         MyItem primaryItem = o.getPrimaryItem();
 
-        assertThat(subject.getRecording()).isEqualTo("" +
+        assertThat(recording.toString()).isEqualTo("" +
                 "$.getPrimaryItem() -> <" + primaryItem.toString() + ">\n");
     }
 
     @Test
     public void shouldRecordMethodCallsOnReturnedObjects() {
-        final CourtReporter<MyCollection> subject = new CourtReporter<>(new MyCollection());
-        MyCollection o = subject.getWrappedObject();
+        MyCollection o = subject.wrapObject(new MyCollection(), recording);
         MyItem primaryItem = o.getPrimaryItem();
         primaryItem.post();
 
-        assertThat(subject.getRecording()).isEqualTo("" +
+        assertThat(recording.toString()).isEqualTo("" +
                 "$.getPrimaryItem() -> <" + primaryItem.toString() + ">\n" +
                 "<" + primaryItem.toString() + ">.post()\n");
     }
 
     @Test
     public void shouldWrapReturnValuesOfUninstantiableSubtypes() {
-        final CourtReporter<MyCollection> subject = new CourtReporter<>(new MyCollection());
-        MyCollection o = subject.getWrappedObject();
+        MyCollection o = subject.wrapObject(new MyCollection(), recording);
         MyObject object = o.getFinalObject();
         object.performAction();
 
-        assertThat(subject.getRecording()).isEqualTo("" +
+        assertThat(recording.toString()).isEqualTo("" +
                 "$.getFinalObject() -> <" + object.toString() + ">\n" +
                 "<" + object.toString() + ">.performAction()\n");
     }

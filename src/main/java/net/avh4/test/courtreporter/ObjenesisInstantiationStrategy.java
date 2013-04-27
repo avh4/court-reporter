@@ -8,21 +8,17 @@ import org.objenesis.ObjenesisStd;
 
 import java.lang.reflect.Modifier;
 
-class ObjenesisInstantiationStrategy<T> implements InstantiationStrategy<T> {
-    private final Class<? extends T> typeToCreate;
+class ObjenesisInstantiationStrategy implements InstantiationStrategy {
     private final ObjenesisStd objenesis = new ObjenesisStd();
 
-    public ObjenesisInstantiationStrategy(Class<? extends T> typeToCreate) {
-        this.typeToCreate = typeToCreate;
-    }
-
-    public static boolean isValid(Class<?> typeToCreate) {
+    @Override
+    public boolean isValid(Class<?> typeToCreate) {
         if (Modifier.isFinal(typeToCreate.getModifiers())) return false;
         return true;
     }
 
     @Override
-    public T execute(MethodInterceptor interceptor) {
+    public <T> T execute(Class<T> typeToCreate, MethodInterceptor interceptor) {
         Enhancer enhancer = new Enhancer();
         enhancer.setSuperclass(typeToCreate);
         enhancer.setCallbackTypes(new Class[]{MethodInterceptor.class});

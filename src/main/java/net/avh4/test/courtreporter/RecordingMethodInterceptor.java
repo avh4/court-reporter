@@ -1,55 +1,19 @@
 package net.avh4.test.courtreporter;
 
-import com.google.common.collect.ImmutableList;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
-import java.util.List;
 
 class RecordingMethodInterceptor implements MethodInterceptor {
-    public static final List<Class<?>> NUMBER_CLASSES = ImmutableList.<Class<?>>of(
-            Integer.class, Boolean.class
-    );
-    private static final List<Class<?>> STRING_CLASSES = ImmutableList.<Class<?>>of(
-            String.class
-    );
 
+    private final CourtReporter factory;
     private final Object originalObject;
     private final StringBuffer recording;
     private final String objectName;
 
-    public static <T extends R, R> R wrapObject(T objectToWrap, Class<R> typeToReturn, StringBuffer recording, String objectName) {
-        if (objectToWrap == null) {
-            return null;
-        } else if (Modifier.isFinal(typeToReturn.getModifiers())) {
-            return objectToWrap;
-        } else if (NUMBER_CLASSES.contains(objectToWrap.getClass())
-                || STRING_CLASSES.contains(objectToWrap.getClass())) {
-            return objectToWrap;
-        } else {
-            return createWrappedObject(objectToWrap, typeToReturn, recording, objectName);
-        }
-    }
-
-    private static <T extends R, R> R createWrappedObject(T objectToWrap, Class<R> typeToReturn, StringBuffer recording, String objectName) {
-        @SuppressWarnings("unchecked")
-        final Class<? extends T> actualType = (Class<? extends T>) objectToWrap.getClass();
-        InstantiationStrategy<R> strategy = determineInstantiationStrategy(actualType, typeToReturn);
-        final RecordingMethodInterceptor interceptor = new RecordingMethodInterceptor(objectToWrap, recording, objectName);
-        return strategy.execute(interceptor);
-    }
-
-    private static <R> InstantiationStrategy<R> determineInstantiationStrategy(final Class<? extends R> actualType, Class<R> requiredType) {
-        if (ObjenesisInstantiationStrategy.isValid(actualType)) {
-            return new ObjenesisInstantiationStrategy<>(actualType);
-        }
-
-        return new ObjenesisInstantiationStrategy<>(requiredType);
-    }
-
-    private RecordingMethodInterceptor(Object originalObject, StringBuffer recording, String objectName) {
+    RecordingMethodInterceptor(CourtReporter factory, Object originalObject, StringBuffer recording, String objectName) {
+        this.factory = factory;
         this.originalObject = originalObject;
         this.recording = recording;
         this.objectName = objectName;
@@ -76,7 +40,7 @@ class RecordingMethodInterceptor implements MethodInterceptor {
         recording.append('\n');
 
         final Class returnValueClass = method.getReturnType();
-        return wrapObject(returnValue, returnValueClass, recording, stringForObject(returnValue));
+        return factory.wrapObject(returnValue, returnValueClass, recording, stringForObject(returnValue));
     }
 
     private void appendObject(Object object) {
@@ -86,9 +50,9 @@ class RecordingMethodInterceptor implements MethodInterceptor {
     private static String stringForObject(Object object) {
         if (object == null) {
             return "(null)";
-        } else if (STRING_CLASSES.contains(object.getClass())) {
+        } else if (CourtReporter.STRING_CLASSES.contains(object.getClass())) {
             return "\"" + object + "\"";
-        } else if (NUMBER_CLASSES.contains(object.getClass())) {
+        } else if (CourtReporter.NUMBER_CLASSES.contains(object.getClass())) {
             return object.toString();
         } else {
             return "<" + object.toString() + ">";
