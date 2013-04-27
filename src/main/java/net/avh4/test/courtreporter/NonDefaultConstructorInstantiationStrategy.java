@@ -11,13 +11,17 @@ class NonDefaultConstructorInstantiationStrategy<T> implements InstantiationStra
     private final Class<? extends T> typeToCreate;
 
     public NonDefaultConstructorInstantiationStrategy(Class<? extends T> typeToCreate) {
-        final Constructor<?>[] constructors = typeToCreate.getConstructors();
-        if (constructors.length == 0) {
+        if (!isValid(typeToCreate)) {
             throw new RuntimeException("No accessible constructors for " + typeToCreate + "\n    - " +
                     Joiner.on("\n    - ").join(typeToCreate.getDeclaredConstructors()));
         }
 
         this.typeToCreate = typeToCreate;
+    }
+
+    public static boolean isValid(Class<?> typeToCreate) {
+        final Constructor<?>[] constructors = typeToCreate.getConstructors();
+        return constructors.length != 0;
     }
 
     @Override

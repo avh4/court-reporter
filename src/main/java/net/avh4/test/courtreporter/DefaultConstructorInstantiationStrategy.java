@@ -7,7 +7,23 @@ class DefaultConstructorInstantiationStrategy<T> implements InstantiationStrateg
     private final Class<? extends T> typeToCreate;
 
     public DefaultConstructorInstantiationStrategy(Class<? extends T> typeToCreate) {
+        if (!isValid(typeToCreate)) {
+            throw new RuntimeException(typeToCreate + " is not an interface and has no accessible default constructor");
+        }
         this.typeToCreate = typeToCreate;
+    }
+
+    public static boolean isValid(Class<?> typeToCreate) {
+        if (typeToCreate.isInterface()) return true;
+        try {
+            if (typeToCreate.getConstructor() != null) {
+                return true;
+            } else {
+                return false;
+            }
+        } catch (NoSuchMethodException e) {
+            return false;
+        }
     }
 
     @Override
