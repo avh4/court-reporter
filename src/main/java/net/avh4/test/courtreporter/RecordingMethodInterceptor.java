@@ -1,12 +1,9 @@
 package net.avh4.test.courtreporter;
 
-import com.google.common.base.Defaults;
 import com.google.common.collect.ImmutableList;
-import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.List;
@@ -23,43 +20,37 @@ class RecordingMethodInterceptor implements MethodInterceptor {
     private final StringBuffer recording;
     private final String objectName;
 
-    private static <T> T wrapObject(T returnValue, Class<? super T> returnValueClass, StringBuffer recording) {
-        if (returnValue == null) {
+    public static <T extends R, R> R wrapObject(T objectToWrap, Class<R> typeToReturn, StringBuffer recording, String objectName) {
+        if (objectToWrap == null) {
             return null;
-        } else if (Modifier.isFinal(returnValueClass.getModifiers())) {
-            return returnValue;
-        } else if (NUMBER_CLASSES.contains(returnValue.getClass())
-                || STRING_CLASSES.contains(returnValue.getClass())) {
-            return returnValue;
+        } else if (Modifier.isFinal(typeToReturn.getModifiers())) {
+            return objectToWrap;
+        } else if (NUMBER_CLASSES.contains(objectToWrap.getClass())
+                || STRING_CLASSES.contains(objectToWrap.getClass())) {
+            return objectToWrap;
         } else {
-            return createWrappedObject(returnValue, returnValueClass, recording, stringForObject(returnValue));
+            return createWrappedObject(objectToWrap, typeToReturn, recording, objectName);
         }
     }
 
-    static <T> T createWrappedObject(T objectToWrap, Class<? super T> typeToReturn, StringBuffer recording, String objectName) {
+    private static <T extends R, R> R createWrappedObject(T objectToWrap, Class<R> typeToReturn, StringBuffer recording, String objectName) {
+        @SuppressWarnings("unchecked")
+        final Class<? extends T> actualType = (Class<? extends T>) objectToWrap.getClass();
+        InstantiationStrategy<R> strategy = determineInstantiationStrategy(actualType, typeToReturn);
         final RecordingMethodInterceptor interceptor = new RecordingMethodInterceptor(objectToWrap, recording, objectName);
+        return strategy.execute(interceptor);
+    }
 
-        Enhancer enhancer = new Enhancer();
-        enhancer.setSuperclass(typeToReturn);
-        enhancer.setCallback(interceptor);
-
-        if (hasDefaultConstructor(typeToReturn)) {
-            //noinspection unchecked
-            return (T) enhancer.create();
-        }
-        if (typeToReturn.isInterface()) {
-            //noinspection unchecked
-            return (T) enhancer.create();
+    private static <R> InstantiationStrategy<R> determineInstantiationStrategy(final Class<? extends R> actualType, Class<R> requiredType) {
+        if (hasDefaultConstructor(actualType)) {
+            return new DefaultConstructorInstantiationStrategy<>(actualType);
         }
 
-        final Constructor<?> constructor = typeToReturn.getConstructors()[0];
-        final Class<?>[] constructorArgTypes = constructor.getParameterTypes();
-        Object[] constructorArgs = new Object[constructorArgTypes.length];
-        for (int i = 0; i < constructorArgs.length; i++) {
-            constructorArgs[i] = Defaults.defaultValue(constructorArgTypes[i]);
+        if (actualType.getConstructors().length == 0) {
+            return new DefaultConstructorInstantiationStrategy<>(requiredType);
         }
-        //noinspection unchecked
-        return (T) enhancer.create(constructorArgTypes, constructorArgs);
+
+        return new NonDefaultConstructorInstantiationStrategy<>(actualType);
     }
 
     private static boolean hasDefaultConstructor(Class<?> aClass) {
@@ -100,8 +91,8 @@ class RecordingMethodInterceptor implements MethodInterceptor {
 
         recording.append('\n');
 
-        final Class<?> returnValueClass = method.getReturnType();
-        return wrapObject(returnValue, (Class) returnValueClass, recording);
+        final Class returnValueClass = method.getReturnType();
+        return wrapObject(returnValue, returnValueClass, recording, stringForObject(returnValue));
     }
 
     private void appendObject(Object object) {

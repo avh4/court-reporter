@@ -6,9 +6,8 @@ public class CourtReporter<T> {
 
     public CourtReporter(T object) {
         recording = new StringBuffer();
-        //noinspection unchecked
         final Class<T> objectClass = (Class<T>) object.getClass();
-        wrappedObject = RecordingMethodInterceptor.createWrappedObject(object, objectClass, recording, "$");
+        wrappedObject = RecordingMethodInterceptor.wrapObject(object, objectClass, recording, "$");
     }
 
     public String getRecording() {
