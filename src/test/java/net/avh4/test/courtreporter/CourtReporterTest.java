@@ -19,10 +19,20 @@ public class CourtReporterTest {
     }
 
     @Test
-    public void shouldRecordMethodCall() {
+    public void shouldRecordMethodCallWithStringArgument() {
         array.add("First Place");
 
-        assertThat(subject.getRecording(array)).isEqualTo("add(\"First Place\")");
+        assertThat(subject.getRecording(array)).isEqualTo("add(\"First Place\") -> true\n");
+    }
+
+    @Test
+    public void shouldRecordMethodCallWithIntArgument() {
+        array.add("First Place");
+        array.remove(0);
+
+        assertThat(subject.getRecording(array)).isEqualTo("" +
+                "add(\"First Place\") -> true\n" +
+                "remove(0) -> \"First Place\"\n");
     }
 
     @Test

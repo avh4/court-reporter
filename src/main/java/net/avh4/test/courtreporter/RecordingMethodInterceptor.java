@@ -10,16 +10,31 @@ class RecordingMethodInterceptor implements MethodInterceptor {
 
     @Override
     public Object intercept(Object object, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
+        final Object returnValue = methodProxy.invokeSuper(object, args);
+
         recording.append(method.getName());
         recording.append('(');
         if (args.length > 0) {
-            recording.append('"');
-            recording.append(args[0]);
-            recording.append('"');
+            appendObject(args[0]);
         }
         recording.append(')');
 
-        return methodProxy.invokeSuper(object, args);
+        recording.append(" -> ");
+        appendObject(returnValue);
+
+        recording.append('\n');
+
+        return returnValue;
+    }
+
+    private void appendObject(Object object) {
+        if (object.getClass().equals(String.class)) {
+            recording.append('"');
+            recording.append(object);
+            recording.append('"');
+        } else {
+            recording.append(object.toString());
+        }
     }
 
     public String getRecording() {
