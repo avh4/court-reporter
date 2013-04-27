@@ -40,4 +40,15 @@ public class CourtReporterTest {
         array.add("First Place");
         assertThat(array).contains("First Place");
     }
+
+    @Test
+    public void shouldWrapClassesWithNoDefaultConstructor() {
+        Object o = new ObjectWithNoDefaultConstructor("String", 7);
+        subject.wrap(o);
+    }
+
+    public static class ObjectWithNoDefaultConstructor {
+        public ObjectWithNoDefaultConstructor(String string, int i) {
+        }
+    }
 }
