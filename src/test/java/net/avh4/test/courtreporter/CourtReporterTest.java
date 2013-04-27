@@ -1,5 +1,6 @@
 package net.avh4.test.courtreporter;
 
+import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -36,9 +37,16 @@ public class CourtReporterTest {
     }
 
     @Test
-    public void shouldProxyWrappedObject() {
+    public void shouldProxyMethods() {
         array.add("First Place");
         assertThat(array).contains("First Place");
+    }
+
+    @Test
+    public void shouldProxyTheOriginalObject() {
+        subject = new CourtReporter<>(new ArrayList<>(ImmutableList.of("A", "B")));
+        array = subject.getWrappedObject();
+        assertThat(array).isEqualTo(ImmutableList.of("A", "B"));
     }
 
     @Test

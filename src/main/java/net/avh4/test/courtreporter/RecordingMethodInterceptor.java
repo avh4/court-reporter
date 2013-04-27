@@ -6,11 +6,16 @@ import net.sf.cglib.proxy.MethodProxy;
 import java.lang.reflect.Method;
 
 class RecordingMethodInterceptor implements MethodInterceptor {
-    private StringBuffer recording = new StringBuffer();
+    private final Object originalObject;
+    private final StringBuffer recording = new StringBuffer();
+
+    RecordingMethodInterceptor(Object originalObject) {
+        this.originalObject = originalObject;
+    }
 
     @Override
     public Object intercept(Object object, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
-        final Object returnValue = methodProxy.invokeSuper(object, args);
+        final Object returnValue = method.invoke(originalObject, args);
 
         recording.append(method.getName());
         recording.append('(');

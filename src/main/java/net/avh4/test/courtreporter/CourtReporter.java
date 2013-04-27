@@ -10,7 +10,7 @@ public class CourtReporter<T> {
     private final T wrappedObject;
 
     public CourtReporter(T object) {
-        interceptor = new RecordingMethodInterceptor();
+        interceptor = new RecordingMethodInterceptor(object);
         wrappedObject = createWrappedObject(object);
     }
 
