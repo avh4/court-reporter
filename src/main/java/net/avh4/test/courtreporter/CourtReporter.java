@@ -5,13 +5,18 @@ import net.sf.cglib.proxy.Enhancer;
 
 import java.lang.reflect.Constructor;
 
-public class CourtReporter {
-    private RecordingMethodInterceptor interceptor;
+public class CourtReporter<T> {
+    private final RecordingMethodInterceptor interceptor;
+    private final T wrappedObject;
 
-    public <T> T wrap(T object) {
+    public CourtReporter(T object) {
+        interceptor = new RecordingMethodInterceptor();
+        wrappedObject = createWrappedObject(object);
+    }
+
+    private T createWrappedObject(T object) {
         Enhancer enhancer = new Enhancer();
         enhancer.setSuperclass(object.getClass());
-        interceptor = new RecordingMethodInterceptor();
         enhancer.setCallback(interceptor);
 
         if (hasDefaultConstructor(object.getClass())) {
@@ -41,7 +46,11 @@ public class CourtReporter {
         }
     }
 
-    public <T> String getRecording(T object) {
+    public String getRecording() {
         return interceptor.getRecording();
+    }
+
+    public T getWrappedObject() {
+        return wrappedObject;
     }
 }

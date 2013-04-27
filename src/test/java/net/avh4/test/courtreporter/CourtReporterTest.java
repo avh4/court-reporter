@@ -9,20 +9,20 @@ import static org.fest.assertions.Assertions.assertThat;
 
 public class CourtReporterTest {
 
-    private CourtReporter subject;
+    private CourtReporter<ArrayList<String>> subject;
     private ArrayList<String> array;
 
     @Before
     public void setUp() {
-        subject = new CourtReporter();
-        array = subject.wrap(new ArrayList<String>());
+        subject = new CourtReporter<>(new ArrayList<String>());
+        array = subject.getWrappedObject();
     }
 
     @Test
     public void shouldRecordMethodCallWithStringArgument() {
         array.add("First Place");
 
-        assertThat(subject.getRecording(array)).isEqualTo("add(\"First Place\") -> true\n");
+        assertThat(subject.getRecording()).isEqualTo("add(\"First Place\") -> true\n");
     }
 
     @Test
@@ -30,7 +30,7 @@ public class CourtReporterTest {
         array.add("First Place");
         array.remove(0);
 
-        assertThat(subject.getRecording(array)).isEqualTo("" +
+        assertThat(subject.getRecording()).isEqualTo("" +
                 "add(\"First Place\") -> true\n" +
                 "remove(0) -> \"First Place\"\n");
     }
@@ -44,7 +44,8 @@ public class CourtReporterTest {
     @Test
     public void shouldWrapClassesWithNoDefaultConstructor() {
         Object o = new ObjectWithNoDefaultConstructor("String", 7);
-        subject.wrap(o);
+        final CourtReporter<Object> subject = new CourtReporter<>(o);
+        assertThat(subject).isNotNull();
     }
 
     public static class ObjectWithNoDefaultConstructor {
