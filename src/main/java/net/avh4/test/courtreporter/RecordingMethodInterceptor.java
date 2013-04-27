@@ -23,25 +23,43 @@ class RecordingMethodInterceptor implements MethodInterceptor {
     private final StringBuffer recording;
     private final String objectName;
 
-    static Object createWrappedObject(Class<?> expectedClass, RecordingMethodInterceptor interceptor) {
+    private static <T> T wrapObject(T returnValue, Class<? super T> returnValueClass, StringBuffer recording) {
+        if (returnValue == null) {
+            return null;
+        } else if (Modifier.isFinal(returnValueClass.getModifiers())) {
+            return returnValue;
+        } else if (NUMBER_CLASSES.contains(returnValue.getClass())
+                || STRING_CLASSES.contains(returnValue.getClass())) {
+            return returnValue;
+        } else {
+            return createWrappedObject(returnValue, returnValueClass, recording, stringForObject(returnValue));
+        }
+    }
+
+    static <T> T createWrappedObject(T objectToWrap, Class<? super T> typeToReturn, StringBuffer recording, String objectName) {
+        final RecordingMethodInterceptor interceptor = new RecordingMethodInterceptor(objectToWrap, recording, objectName);
+
         Enhancer enhancer = new Enhancer();
-        enhancer.setSuperclass(expectedClass);
+        enhancer.setSuperclass(typeToReturn);
         enhancer.setCallback(interceptor);
 
-        if (hasDefaultConstructor(expectedClass)) {
-            return enhancer.create();
+        if (hasDefaultConstructor(typeToReturn)) {
+            //noinspection unchecked
+            return (T) enhancer.create();
         }
-        if (expectedClass.isInterface()) {
-            return enhancer.create();
+        if (typeToReturn.isInterface()) {
+            //noinspection unchecked
+            return (T) enhancer.create();
         }
 
-        final Constructor<?> constructor = expectedClass.getConstructors()[0];
+        final Constructor<?> constructor = typeToReturn.getConstructors()[0];
         final Class<?>[] constructorArgTypes = constructor.getParameterTypes();
         Object[] constructorArgs = new Object[constructorArgTypes.length];
         for (int i = 0; i < constructorArgs.length; i++) {
             constructorArgs[i] = Defaults.defaultValue(constructorArgTypes[i]);
         }
-        return enhancer.create(constructorArgTypes, constructorArgs);
+        //noinspection unchecked
+        return (T) enhancer.create(constructorArgTypes, constructorArgs);
     }
 
     private static boolean hasDefaultConstructor(Class<?> aClass) {
@@ -54,10 +72,6 @@ class RecordingMethodInterceptor implements MethodInterceptor {
         } catch (NoSuchMethodException e) {
             return false;
         }
-    }
-
-    RecordingMethodInterceptor(Object originalObject) {
-        this(originalObject, new StringBuffer(), "$");
     }
 
     private RecordingMethodInterceptor(Object originalObject, StringBuffer recording, String objectName) {
@@ -87,17 +101,7 @@ class RecordingMethodInterceptor implements MethodInterceptor {
         recording.append('\n');
 
         final Class<?> returnValueClass = method.getReturnType();
-        if (returnValue == null) {
-            return null;
-        } else if (Modifier.isFinal(returnValueClass.getModifiers())) {
-            return returnValue;
-        } else if (NUMBER_CLASSES.contains(returnValue.getClass())
-                || STRING_CLASSES.contains(returnValue.getClass())) {
-            return returnValue;
-        } else {
-            final RecordingMethodInterceptor interceptor = new RecordingMethodInterceptor(returnValue, recording, stringForObject(returnValue));
-            return createWrappedObject(returnValueClass, interceptor);
-        }
+        return wrapObject(returnValue, (Class) returnValueClass, recording);
     }
 
     private void appendObject(Object object) {
@@ -114,9 +118,5 @@ class RecordingMethodInterceptor implements MethodInterceptor {
         } else {
             return "<" + object.toString() + ">";
         }
-    }
-
-    public String getRecording() {
-        return recording.toString();
     }
 }
