@@ -78,6 +78,18 @@ public class CourtReporterTest {
                 "<" + primaryItem.toString() + ">.post()\n");
     }
 
+    @Test
+    public void shouldWrapReturnValuesOfUninstantiableSubtypes() {
+        final CourtReporter<MyCollection> subject = new CourtReporter<>(new MyCollection());
+        MyCollection o = subject.getWrappedObject();
+        MyObject object = o.getFinalObject();
+        object.performAction();
+
+        assertThat(subject.getRecording()).isEqualTo("" +
+                "$.getFinalObject() -> <" + object.toString() + ">\n" +
+                "<" + object.toString() + ">.performAction()\n");
+    }
+
     public static class MyCollection {
         private final MyItem primaryItem;
 
@@ -88,10 +100,24 @@ public class CourtReporterTest {
         public MyItem getPrimaryItem() {
             return primaryItem;
         }
+
+        public MyObject getFinalObject() {
+            return new MyFinalObject();
+        }
     }
 
     public static class MyItem {
         public void post() {
+        }
+    }
+
+    private static interface MyObject {
+        void performAction();
+    }
+
+    private static final class MyFinalObject implements MyObject {
+        @Override
+        public void performAction() {
         }
     }
 

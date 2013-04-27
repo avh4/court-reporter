@@ -6,7 +6,7 @@ public class CourtReporter<T> {
 
     public CourtReporter(T object) {
         interceptor = new RecordingMethodInterceptor(object);
-        wrappedObject = RecordingMethodInterceptor.createWrappedObject(object, interceptor);
+        wrappedObject = (T) RecordingMethodInterceptor.createWrappedObject(object.getClass(), interceptor);
     }
 
     public String getRecording() {
