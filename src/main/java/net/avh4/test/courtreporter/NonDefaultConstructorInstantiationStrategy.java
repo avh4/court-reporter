@@ -6,6 +6,7 @@ import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
 
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Modifier;
 
 class NonDefaultConstructorInstantiationStrategy<T> implements InstantiationStrategy<T> {
     private final Class<? extends T> typeToCreate;
@@ -20,7 +21,8 @@ class NonDefaultConstructorInstantiationStrategy<T> implements InstantiationStra
     }
 
     public static boolean isValid(Class<?> typeToCreate) {
-        final Constructor<?>[] constructors = typeToCreate.getConstructors();
+        if (Modifier.isFinal(typeToCreate.getModifiers())) return false;
+        final Constructor<?>[] constructors = typeToCreate.getDeclaredConstructors();
         return constructors.length != 0;
     }
 
@@ -30,7 +32,7 @@ class NonDefaultConstructorInstantiationStrategy<T> implements InstantiationStra
         enhancer.setSuperclass(typeToCreate);
         enhancer.setCallback(interceptor);
 
-        final Constructor<?>[] constructors = typeToCreate.getConstructors();
+        final Constructor<?>[] constructors = typeToCreate.getDeclaredConstructors();
         final Constructor<?> constructor = constructors[0];
         final Class<?>[] constructorArgTypes = constructor.getParameterTypes();
         Object[] constructorArgs = new Object[constructorArgTypes.length];

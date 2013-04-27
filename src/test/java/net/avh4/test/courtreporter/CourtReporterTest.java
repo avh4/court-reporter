@@ -12,10 +12,12 @@ public class CourtReporterTest {
 
     private CourtReporter<ArrayList<String>> subject;
     private ArrayList<String> array;
+    private ArrayList<String> originalArray;
 
     @Before
     public void setUp() {
-        subject = new CourtReporter<>(new ArrayList<String>());
+        originalArray = new ArrayList<>();
+        subject = new CourtReporter<>(originalArray);
         array = subject.getWrappedObject();
     }
 
@@ -39,7 +41,7 @@ public class CourtReporterTest {
     @Test
     public void shouldProxyMethods() {
         array.add("First Place");
-        assertThat(array).contains("First Place");
+        assertThat(originalArray).contains("First Place");
     }
 
     @Test

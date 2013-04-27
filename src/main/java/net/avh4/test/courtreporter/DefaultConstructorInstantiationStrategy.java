@@ -3,6 +3,8 @@ package net.avh4.test.courtreporter;
 import net.sf.cglib.proxy.Enhancer;
 import net.sf.cglib.proxy.MethodInterceptor;
 
+import java.lang.reflect.Modifier;
+
 class DefaultConstructorInstantiationStrategy<T> implements InstantiationStrategy<T> {
     private final Class<? extends T> typeToCreate;
 
@@ -15,8 +17,9 @@ class DefaultConstructorInstantiationStrategy<T> implements InstantiationStrateg
 
     public static boolean isValid(Class<?> typeToCreate) {
         if (typeToCreate.isInterface()) return true;
+        if (Modifier.isFinal(typeToCreate.getModifiers())) return false;
         try {
-            if (typeToCreate.getConstructor() != null) {
+            if (typeToCreate.getDeclaredConstructor() != null) {
                 return true;
             } else {
                 return false;

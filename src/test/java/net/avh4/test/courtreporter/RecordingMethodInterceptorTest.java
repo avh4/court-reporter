@@ -56,8 +56,20 @@ public class RecordingMethodInterceptorTest {
         assertThat(o).isInstanceOf(TestClass.class);
     }
 
+    @Test
+    public void someClassWithProtectedConstructor_asSuperclass_shouldBeOriginalClass() {
+        final Object o = RecordingMethodInterceptor.wrapObject(new PrivateTestClass("key"), Object.class, recording, "$");
+
+        assertThat(o).isInstanceOf(PrivateTestClass.class);
+    }
+
     public static class TestClass {
         public void performAction() {
+        }
+    }
+
+    private static class PrivateTestClass extends TestClass {
+        protected PrivateTestClass(String secretArgument) {
         }
     }
 }
