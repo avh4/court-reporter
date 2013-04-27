@@ -4,3 +4,6 @@
 
 Record method invocations for an entire object graph
 
+## Build commands
+
+* [Mutation coverage](http://pitest.org/): `mvn org.pitest:pitest-maven:mutationCoverage`

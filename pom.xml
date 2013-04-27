@@ -33,6 +33,19 @@
                     <target>${java.version}</target>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.pitest</groupId>
+                <artifactId>pitest-maven</artifactId>
+                <version>0.29</version>
+                <configuration>
+                    <targetClasses>
+                        <param>net.avh4.test.courtreporter.*</param>
+                    </targetClasses>
+                    <targetTests>
+                        <param>net.avh4.test.courtreporter.*</param>
+                    </targetTests>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
 
