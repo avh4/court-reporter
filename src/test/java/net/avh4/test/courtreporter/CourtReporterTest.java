@@ -23,7 +23,7 @@ public class CourtReporterTest {
     public void shouldRecordMethodCallWithStringArgument() {
         array.add("First Place");
 
-        assertThat(subject.getRecording()).isEqualTo("add(\"First Place\") -> true\n");
+        assertThat(subject.getRecording()).isEqualTo("$.add(\"First Place\") -> true\n");
     }
 
     @Test
@@ -32,8 +32,8 @@ public class CourtReporterTest {
         array.remove(0);
 
         assertThat(subject.getRecording()).isEqualTo("" +
-                "add(\"First Place\") -> true\n" +
-                "remove(0) -> \"First Place\"\n");
+                "$.add(\"First Place\") -> true\n" +
+                "$.remove(0) -> \"First Place\"\n");
     }
 
     @Test
@@ -54,6 +54,45 @@ public class CourtReporterTest {
         Object o = new ObjectWithNoDefaultConstructor("String", 7);
         final CourtReporter<Object> subject = new CourtReporter<>(o);
         assertThat(subject).isNotNull();
+    }
+
+    @Test
+    public void shouldRecordObjectReturnValues() {
+        final CourtReporter<MyCollection> subject = new CourtReporter<>(new MyCollection());
+        MyCollection o = subject.getWrappedObject();
+        MyItem primaryItem = o.getPrimaryItem();
+
+        assertThat(subject.getRecording()).isEqualTo("" +
+                "$.getPrimaryItem() -> <" + primaryItem.toString() + ">\n");
+    }
+
+    @Test
+    public void shouldRecordMethodCallsOnReturnedObjects() {
+        final CourtReporter<MyCollection> subject = new CourtReporter<>(new MyCollection());
+        MyCollection o = subject.getWrappedObject();
+        MyItem primaryItem = o.getPrimaryItem();
+        primaryItem.post();
+
+        assertThat(subject.getRecording()).isEqualTo("" +
+                "$.getPrimaryItem() -> <" + primaryItem.toString() + ">\n" +
+                "<" + primaryItem.toString() + ">.post()\n");
+    }
+
+    public static class MyCollection {
+        private final MyItem primaryItem;
+
+        public MyCollection() {
+            primaryItem = new MyItem();
+        }
+
+        public MyItem getPrimaryItem() {
+            return primaryItem;
+        }
+    }
+
+    public static class MyItem {
+        public void post() {
+        }
     }
 
     public static class ObjectWithNoDefaultConstructor {
