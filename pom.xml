@@ -10,7 +10,7 @@
     <packaging>jar</packaging>
 
     <name>court-reporter</name>
-    <description></description>
+    <description>Record method invocations for an entire object graph</description>
     <url>http://github.com/avh4/court-reporter</url>
 
     <properties>
