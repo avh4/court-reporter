@@ -1,10 +1,7 @@
 package net.avh4.test.courtreporter;
 
-import com.google.common.collect.ImmutableList;
 import org.junit.Before;
 import org.junit.Test;
-
-import java.util.ArrayList;
 
 import static org.fest.assertions.Assertions.assertThat;
 
@@ -12,44 +9,34 @@ public class CourtReporterTest {
 
     private CourtReporter subject;
     private StringBuffer recording;
-    private ArrayList<String> array;
-    private ArrayList<String> originalArray;
+    private MyCollection originalObject;
+    private MyCollection object;
 
     @Before
     public void setUp() {
         recording = new StringBuffer();
-        originalArray = new ArrayList<>();
         subject = new CourtReporter();
-        array = subject.wrapObject(originalArray, recording);
+        originalObject = new MyCollection();
+        object = subject.wrapObject(originalObject, recording);
     }
 
     @Test
     public void shouldRecordMethodCallWithStringArgument() {
-        array.add("First Place");
-
-        assertThat(recording.toString()).isEqualTo("$.add(\"First Place\") -> true\n");
+        object.takeString("First Place");
+        assertThat(recording.toString()).isEqualTo("$.takeString(\"First Place\")\n");
     }
 
     @Test
     public void shouldRecordMethodCallWithIntArgument() {
-        array.add("First Place");
-        array.remove(0);
-
-        assertThat(recording.toString()).isEqualTo("" +
-                "$.add(\"First Place\") -> true\n" +
-                "$.remove(0) -> \"First Place\"\n");
+        object.takeInt(0);
+        assertThat(recording.toString()).isEqualTo("$.takeInt(0)\n");
     }
 
     @Test
     public void shouldProxyMethods() {
-        array.add("First Place");
-        assertThat(originalArray).contains("First Place");
-    }
-
-    @Test
-    public void shouldProxyTheOriginalObject() {
-        array = subject.wrapObject(new ArrayList<>(ImmutableList.of("A", "B")), recording);
-        assertThat(array).isEqualTo(ImmutableList.of("A", "B"));
+        assertThat(originalObject.flag).isFalse();
+        object.setFlag();
+        assertThat(originalObject.flag).isTrue();
     }
 
     @Test
@@ -91,13 +78,71 @@ public class CourtReporterTest {
 
     @Test
     public void shouldRecordNullValue() {
-        array.add(null);
+        object.takeString(null);
         assertThat(recording.toString()).isEqualTo("" +
-                "$.add((null)) -> true\n");
+                "$.takeString((null))\n");
+    }
+
+    @Test
+    public void string_shouldNotRecord() {
+        final String o = subject.wrapObject("String", String.class, recording, "$");
+
+        o.charAt(0);
+
+        assertThat(recording.toString()).isEmpty();
+    }
+
+    @Test
+    public void string_asSuperclass_shouldNotRecord() {
+        final Object o = subject.wrapObject("String", Object.class, recording, "$");
+
+        o.hashCode();
+
+        assertThat(recording.toString()).isEmpty();
+    }
+
+    @Test
+    public void string_asSuperclass_shouldBeAString() {
+        final Object o = subject.wrapObject("String", Object.class, recording, "$");
+
+        assertThat(o).isInstanceOf(String.class);
+    }
+
+    @Test
+    public void someClass_shouldRecord() {
+        final TestClass o = subject.wrapObject(new TestClass(), TestClass.class, recording, "$");
+
+        o.performAction();
+
+        assertThat(recording.toString()).isEqualTo("$.performAction()\n");
+    }
+
+    @Test
+    public void someClass_asSuperclass_shouldBeOriginalClass() {
+        final Object o = subject.wrapObject(new TestClass(), Object.class, recording, "$");
+
+        assertThat(o).isInstanceOf(TestClass.class);
+    }
+
+    @Test
+    public void someClassWithProtectedConstructor_asSuperclass_shouldBeOriginalClass() {
+        final Object o = subject.wrapObject(new PrivateTestClass("key"), Object.class, recording, "$");
+
+        assertThat(o).isInstanceOf(PrivateTestClass.class);
+    }
+
+    @Test
+    public void someClassWithUncallableConstructor_shouldRecord() {
+        final TestClass o = subject.wrapObject(new UncallableConstructorTestClass(), TestClass.class, recording, "$");
+
+        o.performAction();
+
+        assertThat(recording.toString()).isEqualTo("$.performAction()\n");
     }
 
     public static class MyCollection {
         private final MyItem primaryItem;
+        public boolean flag;
 
         public MyCollection() {
             primaryItem = new MyItem();
@@ -109,6 +154,16 @@ public class CourtReporterTest {
 
         public MyObject getFinalObject() {
             return new MyFinalObject();
+        }
+
+        public void takeString(String s) {
+        }
+
+        public void takeInt(int i) {
+        }
+
+        public void setFlag() {
+            flag = true;
         }
     }
 
@@ -129,6 +184,24 @@ public class CourtReporterTest {
 
     public static class ObjectWithNoDefaultConstructor {
         public ObjectWithNoDefaultConstructor(String string, int i) {
+        }
+    }
+
+    public static class TestClass {
+        public void performAction() {
+        }
+    }
+
+    private static class PrivateTestClass extends TestClass {
+        protected PrivateTestClass(String secretArgument) {
+        }
+    }
+
+    public static class UncallableConstructorTestClass extends TestClass {
+        public UncallableConstructorTestClass() {
+            if (!getClass().equals(UncallableConstructorTestClass.class)) {
+                throw new RuntimeException("No subclasses allowed");
+            }
         }
     }
 }
