@@ -89,6 +89,13 @@ public class CourtReporterTest {
                 "<" + object.toString() + ">.performAction()\n");
     }
 
+    @Test
+    public void shouldRecordNullValue() {
+        array.add(null);
+        assertThat(recording.toString()).isEqualTo("" +
+                "$.add((null)) -> true\n");
+    }
+
     public static class MyCollection {
         private final MyItem primaryItem;
 
