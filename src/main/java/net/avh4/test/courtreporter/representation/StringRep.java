@@ -32,7 +32,8 @@ public class StringRep extends Rep {
         return "STRING(" + value + ")";
     }
 
-    public String getValue() {
+    @Override
+    public String toJson() {
         return value;
     }
 }

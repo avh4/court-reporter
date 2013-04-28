@@ -35,4 +35,8 @@ public class TestObject {
     public static void callProtectedMethod(TestObject o) {
         o.protectedMethod();
     }
+
+    public Integer getInteger() {
+        return 42;
+    }
 }

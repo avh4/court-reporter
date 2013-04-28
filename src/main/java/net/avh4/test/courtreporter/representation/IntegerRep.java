@@ -29,7 +29,8 @@ public class IntegerRep extends Rep {
         return "INT(" + value + ")";
     }
 
-    public int getValue() {
+    @Override
+    public Integer toJson() {
         return value;
     }
 }

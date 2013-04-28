@@ -33,7 +33,7 @@ public class RecordingMethodInterceptor implements MethodInterceptor {
         recording.methodCall(objectName, method.getName(), returnToken, argStrings);
 
         if (returnValue == null) return null;
-        return factory.wrapObject(returnValue, recording, nameForObject(returnValue));
+        return factory.wrapObject(returnValue, recording);
     }
 
     public static Rep[] repsForArgs(Method method, Object[] args) {
@@ -48,18 +48,13 @@ public class RecordingMethodInterceptor implements MethodInterceptor {
         }
         if (object == null) {
             return Rep.NULL;
-        }
-        if (type == Integer.TYPE) {
+        } else if (object instanceof Integer) {
             return Rep.integer((Integer) object);
         } else if (CourtReporter.STRING_CLASSES.contains(object.getClass())) {
             return Rep.string((String) object);
         } else {
-            return Rep.object(object, nameForObject(object));
+            return Rep.object(object);
         }
-    }
-
-    private static String nameForObject(Object object) {
-        return "A";
     }
 
     public Object getOriginalObject() {

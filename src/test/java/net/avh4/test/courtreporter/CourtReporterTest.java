@@ -31,13 +31,13 @@ public class CourtReporterTest {
     @Test
     public void shouldRecordMethodCallWithStringArgument() {
         object.takeString("First Place");
-        verify(recording).methodCall(Rep.object(object, "$"), "takeString", Rep.VOID, Rep.string("First Place"));
+        verify(recording).methodCall(Rep.object(object), "takeString", Rep.VOID, Rep.string("First Place"));
     }
 
     @Test
     public void shouldRecordMethodCallWithIntArgument() {
         object.takeInt(0);
-        verify(recording).methodCall(Rep.object(object, "$"), "takeInt", Rep.VOID, Rep.integer(0));
+        verify(recording).methodCall(Rep.object(object), "takeInt", Rep.VOID, Rep.integer(0));
     }
 
     @Test
@@ -58,7 +58,7 @@ public class CourtReporterTest {
         TestObject o = subject.wrapObject(new TestObject(), recording);
         MyItem primaryItem = o.getPrimaryItem();
 
-        verify(recording).methodCall(Rep.object(o, "$"), "getPrimaryItem", Rep.object(primaryItem, "A"));
+        verify(recording).methodCall(Rep.object(o), "getPrimaryItem", Rep.object(primaryItem));
     }
 
     @Test
@@ -67,8 +67,8 @@ public class CourtReporterTest {
         MyItem primaryItem = o.getPrimaryItem();
         primaryItem.post();
 
-        final ObjectRep a = Rep.object(primaryItem, "A");
-        verify(recording).methodCall(Rep.object(o, "$"), "getPrimaryItem", a);
+        final ObjectRep a = Rep.object(primaryItem);
+        verify(recording).methodCall(Rep.object(o), "getPrimaryItem", a);
         verify(recording).methodCall(a, "post", Rep.VOID);
     }
 
@@ -78,20 +78,20 @@ public class CourtReporterTest {
         net.avh4.test.courtreporter.test.TestInterface object = o.getFinalObject();
         object.performAction();
 
-        final ObjectRep a = Rep.object(object, "A");
-        verify(recording).methodCall(Rep.object(o, "$"), "getFinalObject", a);
+        final ObjectRep a = Rep.object(object);
+        verify(recording).methodCall(Rep.object(o), "getFinalObject", a);
         verify(recording).methodCall(a, "performAction", Rep.VOID);
     }
 
     @Test
     public void shouldRecordNullValue() {
         object.takeString(null);
-        verify(recording).methodCall(Rep.object(originalObject, "$"), "takeString", Rep.VOID, Rep.NULL);
+        verify(recording).methodCall(Rep.object(originalObject), "takeString", Rep.VOID, Rep.NULL);
     }
 
     @Test
     public void string_shouldNotRecord() {
-        final String o = subject.wrapObject("String", recording, "$");
+        final String o = subject.wrapObject("String", recording);
 
         //noinspection ResultOfMethodCallIgnored
         o.charAt(0);
@@ -101,7 +101,7 @@ public class CourtReporterTest {
 
     @Test
     public void string_asSuperclass_shouldNotRecord() {
-        final Object o = subject.wrapObject("String", recording, "$");
+        final Object o = subject.wrapObject("String", recording);
 
         //noinspection ResultOfMethodCallIgnored
         o.hashCode();
@@ -111,7 +111,7 @@ public class CourtReporterTest {
 
     @Test
     public void string_asSuperclass_shouldBeAString() {
-        final Object o = subject.wrapObject("String", recording, "$");
+        final Object o = subject.wrapObject("String", recording);
 
         assertThat(o).isInstanceOf(String.class);
     }
@@ -119,53 +119,59 @@ public class CourtReporterTest {
     @Test
     public void someClass_shouldRecord() {
         final TestClass original = new TestClass();
-        final TestClass o = subject.wrapObject(original, recording, "$");
+        final TestClass o = subject.wrapObject(original, recording);
 
         o.performAction();
 
-        verify(recording).methodCall(Rep.object(original, "$"), "performAction", Rep.VOID);
+        verify(recording).methodCall(Rep.object(original), "performAction", Rep.VOID);
     }
 
     @Test
     public void someClass_asSuperclass_shouldBeOriginalClass() {
-        final Object o = subject.wrapObject(new TestClass(), recording, "$");
+        final Object o = subject.wrapObject(new TestClass(), recording);
 
         assertThat(o).isInstanceOf(TestClass.class);
     }
 
     @Test
     public void someClassWithProtectedConstructor_asSuperclass_shouldBeOriginalClass() {
-        final Object o = subject.wrapObject(new PrivateTestClass("key"), recording, "$");
+        final Object o = subject.wrapObject(new PrivateTestClass("key"), recording);
 
         assertThat(o).isInstanceOf(PrivateTestClass.class);
     }
 
     @Test
     public void someClassWithUncallableConstructor_shouldRecord() {
-        final TestClass o = subject.wrapObject(new UncallableConstructorTestClass(), recording, "$");
+        final TestClass o = subject.wrapObject(new UncallableConstructorTestClass(), recording);
 
         o.performAction();
 
-        verify(recording).methodCall(Rep.object(o, "$"), "performAction", Rep.VOID);
+        verify(recording).methodCall(Rep.object(o), "performAction", Rep.VOID);
     }
 
     @Test
     public void shouldRecordProtectedMethod() {
         TestObject.callProtectedMethod(object);
-        verify(recording).methodCall(Rep.object(object, "$"), "protectedMethod", Rep.VOID);
+        verify(recording).methodCall(Rep.object(object), "protectedMethod", Rep.VOID);
     }
 
     @Test
     public void classWithFinalMethods_shouldRecord() {
-        TestInterface o = subject.wrapObject(new TestObjectWithFinalMethod(), recording, "$");
+        TestInterface o = subject.wrapObject(new TestObjectWithFinalMethod(), recording);
         o.performAction();
-        verify(recording).methodCall(Rep.object(o, "$"), "performAction", Rep.VOID);
+        verify(recording).methodCall(Rep.object(o), "performAction", Rep.VOID);
     }
 
     @Test
     public void someFinalClass_shouldImplementInterfaces() {
-        Object o = subject.wrapObject(new RegularImmutableMap(), recording, "$");
+        Object o = subject.wrapObject(new RegularImmutableMap(), recording);
         assertThat(o).isInstanceOf(Map.class);
+    }
+
+    @Test
+    public void shouldRecordMethodWithIntegerReturnValue() {
+        object.getInteger();
+        verify(recording).methodCall(Rep.object(object), "getInteger", Rep.integer(42));
     }
 
     public static class MyItem {

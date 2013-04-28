@@ -17,7 +17,7 @@ public class ReplayFactoryTest {
     @Test
     public void shouldReplayMethodCall() throws Exception {
         ArrayList replay = ReplayFactory.get(ArrayList.class, new JSONObject(
-                "{ ['get' , 0] : ['Hot Dog'] }"
+                "{ 'java.util.ArrayList' : { ['get' , 0] : ['Hot Dog'] } }"
         ));
 
         assertThat(replay.get(0)).isEqualTo("Hot Dog");
@@ -26,10 +26,29 @@ public class ReplayFactoryTest {
     @Test
     public void shouldDistinguishMethodNames() throws Exception {
         ArrayList replay = ReplayFactory.get(ArrayList.class, new JSONObject(
-                "{ ['get' , 0] : ['Hot Dog'], ['indexOf', 'Hot Dog'] : [0] }"
+                "{ 'java.util.ArrayList' : { ['get' , 0] : ['Hot Dog'], ['indexOf', 'Hot Dog'] : [0] } }"
         ));
 
         assertThat(replay.get(0)).isEqualTo("Hot Dog");
         assertThat(replay.indexOf("Hot Dog")).isEqualTo(0);
+    }
+
+    @Test
+    public void shouldReplayMethodsThatReturnObjects() throws Exception {
+        ArrayList replay = ReplayFactory.get(ArrayList.class, new JSONObject(
+                "{ 'java.util.ArrayList' : { ['clone'] : [ { 'java.util.ArrayList' : {} } ] } }"
+        ));
+
+        assertThat(replay.clone()).isInstanceOf(ArrayList.class);
+    }
+
+    @Test
+    public void shouldReplayMethodsOnReturnedObjects() throws Exception {
+        ArrayList replay = ReplayFactory.get(ArrayList.class, new JSONObject(
+                "{ 'java.util.ArrayList' : { ['clone'] : [ { 'java.util.ArrayList' : { ['size'] : [700] } } ] } }"
+        ));
+
+        ArrayList returnedObject = (ArrayList) replay.clone();
+        assertThat(returnedObject.size()).isEqualTo(700);
     }
 }

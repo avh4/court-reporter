@@ -17,4 +17,27 @@ public class TestService {
         wasTouched = true;
         return "Math.square";
     }
+
+    public Container createContainer(int initialValue) {
+        return new Container(initialValue);
+    }
+
+    public class Container {
+        private Object value;
+
+        public Container(int value) {
+            wasTouched = true;
+            this.value = value;
+        }
+
+        public Integer getValue() {
+            wasTouched = true;
+            return (Integer) value;
+        }
+
+        public void setValue(int value) {
+            wasTouched = true;
+            this.value = value;
+        }
+    }
 }

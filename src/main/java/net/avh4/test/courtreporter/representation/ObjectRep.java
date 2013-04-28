@@ -1,16 +1,19 @@
 package net.avh4.test.courtreporter.representation;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import static com.google.common.base.Preconditions.checkNotNull;
 
 public class ObjectRep extends Rep {
     private final String className;
-    private final String id;
+    private final Object identity;
 
-    public ObjectRep(String className, String id) {
+    public ObjectRep(String className, Object identity) {
         checkNotNull(className);
-        checkNotNull(id);
+        checkNotNull(identity);
         this.className = className;
-        this.id = id;
+        this.identity = identity;
     }
 
     @Override
@@ -21,7 +24,7 @@ public class ObjectRep extends Rep {
         net.avh4.test.courtreporter.representation.ObjectRep that = (net.avh4.test.courtreporter.representation.ObjectRep) o;
 
         if (!className.equals(that.className)) return false;
-        if (!id.equals(that.id)) return false;
+        if (!(identity == that.identity)) return false;
 
         return true;
     }
@@ -29,12 +32,25 @@ public class ObjectRep extends Rep {
     @Override
     public int hashCode() {
         int result = className.hashCode();
-        result = 31 * result + id.hashCode();
+        result = 31 * result + System.identityHashCode(identity);
         return result;
     }
 
     @Override
     public String toString() {
-        return className + ":" + id;
+        return className + ":" + identity;
+    }
+
+    public Object getIdentity() {
+        return identity;
+    }
+
+    @Override
+    public JSONObject toJson() {
+        try {
+            return new JSONObject().put(className, new JSONObject());
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
     }
 }
