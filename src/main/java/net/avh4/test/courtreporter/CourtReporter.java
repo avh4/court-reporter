@@ -3,6 +3,8 @@ package net.avh4.test.courtreporter;
 import com.google.common.collect.ImmutableList;
 
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 
 public class CourtReporter {
@@ -40,9 +42,13 @@ public class CourtReporter {
         final RecordingMethodInterceptor interceptor = new RecordingMethodInterceptor(this, objectToWrap, recording, objectName);
 
         if (instantiationStrategy.isValid(actualType)) {
-            return instantiationStrategy.execute(actualType, interceptor);
+            return instantiationStrategy.execute(actualType, interceptor, new Class[0]);
         }
 
-        return instantiationStrategy.execute(typeToReturn, interceptor);
+        HashSet<Class<?>> interfaces = new HashSet<>();
+        for (Class<?> c = actualType; c != null; c = c.getSuperclass()) {
+            interfaces.addAll(Arrays.asList(c.getInterfaces()));
+        }
+        return instantiationStrategy.execute(typeToReturn, interceptor, interfaces.toArray(new Class[0]));
     }
 }

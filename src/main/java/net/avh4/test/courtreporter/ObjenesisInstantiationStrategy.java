@@ -27,9 +27,10 @@ class ObjenesisInstantiationStrategy implements InstantiationStrategy {
     }
 
     @Override
-    public <T> T execute(Class<T> typeToCreate, MethodInterceptor interceptor) {
+    public <T> T execute(Class<T> typeToCreate, MethodInterceptor interceptor, Class[] interfaces) {
         Enhancer enhancer = new Enhancer();
         enhancer.setSuperclass(typeToCreate);
+        enhancer.setInterfaces(interfaces);
         enhancer.setCallbackTypes(new Class[]{MethodInterceptor.class});
 
         //noinspection unchecked

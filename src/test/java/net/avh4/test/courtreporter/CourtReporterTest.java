@@ -1,8 +1,6 @@
 package net.avh4.test.courtreporter;
 
-import net.avh4.test.courtreporter.test.TestInterface;
-import net.avh4.test.courtreporter.test.TestObject;
-import net.avh4.test.courtreporter.test.TestObjectWithFinalMethod;
+import net.avh4.test.courtreporter.test.*;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -156,6 +154,12 @@ public class CourtReporterTest {
         TestInterface o = subject.wrapObject(new TestObjectWithFinalMethod(), TestInterface.class, recording, "$");
         o.performAction();
         assertThat(recording.toString()).isEqualTo("$.performAction()\n");
+    }
+
+    @Test
+    public void someFinalClass_shouldImplementInterfaces() {
+        Object o = subject.wrapObject(new RegularImmutableMap(), Object.class, recording, "$");
+        assertThat(o).isInstanceOf(Map.class);
     }
 
     public static class MyItem {
