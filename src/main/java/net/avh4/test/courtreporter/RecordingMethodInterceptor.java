@@ -21,6 +21,7 @@ class RecordingMethodInterceptor implements MethodInterceptor {
 
     @Override
     public Object intercept(Object object, Method method, Object[] args, MethodProxy methodProxy) throws Throwable {
+        method.setAccessible(true);
         final Object returnValue = method.invoke(originalObject, args);
 
         recording.append(objectName);

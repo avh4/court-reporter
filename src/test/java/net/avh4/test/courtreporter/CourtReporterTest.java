@@ -1,5 +1,6 @@
 package net.avh4.test.courtreporter;
 
+import net.avh4.test.courtreporter.test.TestObject;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -9,14 +10,14 @@ public class CourtReporterTest {
 
     private CourtReporter subject;
     private StringBuffer recording;
-    private MyCollection originalObject;
-    private MyCollection object;
+    private TestObject originalObject;
+    private TestObject object;
 
     @Before
     public void setUp() {
         recording = new StringBuffer();
         subject = new CourtReporter();
-        originalObject = new MyCollection();
+        originalObject = new TestObject();
         object = subject.wrapObject(originalObject, recording);
     }
 
@@ -47,7 +48,7 @@ public class CourtReporterTest {
 
     @Test
     public void shouldRecordObjectReturnValues() {
-        MyCollection o = subject.wrapObject(new MyCollection(), recording);
+        TestObject o = subject.wrapObject(new TestObject(), recording);
         MyItem primaryItem = o.getPrimaryItem();
 
         assertThat(recording.toString()).isEqualTo("" +
@@ -56,7 +57,7 @@ public class CourtReporterTest {
 
     @Test
     public void shouldRecordMethodCallsOnReturnedObjects() {
-        MyCollection o = subject.wrapObject(new MyCollection(), recording);
+        TestObject o = subject.wrapObject(new TestObject(), recording);
         MyItem primaryItem = o.getPrimaryItem();
         primaryItem.post();
 
@@ -67,8 +68,8 @@ public class CourtReporterTest {
 
     @Test
     public void shouldWrapReturnValuesOfUninstantiableSubtypes() {
-        MyCollection o = subject.wrapObject(new MyCollection(), recording);
-        MyObject object = o.getFinalObject();
+        TestObject o = subject.wrapObject(new TestObject(), recording);
+        net.avh4.test.courtreporter.test.TestInterface object = o.getFinalObject();
         object.performAction();
 
         assertThat(recording.toString()).isEqualTo("" +
@@ -87,6 +88,7 @@ public class CourtReporterTest {
     public void string_shouldNotRecord() {
         final String o = subject.wrapObject("String", String.class, recording, "$");
 
+        //noinspection ResultOfMethodCallIgnored
         o.charAt(0);
 
         assertThat(recording.toString()).isEmpty();
@@ -96,6 +98,7 @@ public class CourtReporterTest {
     public void string_asSuperclass_shouldNotRecord() {
         final Object o = subject.wrapObject("String", Object.class, recording, "$");
 
+        //noinspection ResultOfMethodCallIgnored
         o.hashCode();
 
         assertThat(recording.toString()).isEmpty();
@@ -140,45 +143,14 @@ public class CourtReporterTest {
         assertThat(recording.toString()).isEqualTo("$.performAction()\n");
     }
 
-    public static class MyCollection {
-        private final MyItem primaryItem;
-        public boolean flag;
-
-        public MyCollection() {
-            primaryItem = new MyItem();
-        }
-
-        public MyItem getPrimaryItem() {
-            return primaryItem;
-        }
-
-        public MyObject getFinalObject() {
-            return new MyFinalObject();
-        }
-
-        public void takeString(String s) {
-        }
-
-        public void takeInt(int i) {
-        }
-
-        public void setFlag() {
-            flag = true;
-        }
+    @Test
+    public void shouldRecordProtectedMethod() {
+        TestObject.callProtectedMethod(object);
+        assertThat(recording.toString()).isEqualTo("$.protectedMethod()\n");
     }
 
     public static class MyItem {
         public void post() {
-        }
-    }
-
-    private static interface MyObject {
-        void performAction();
-    }
-
-    private static final class MyFinalObject implements MyObject {
-        @Override
-        public void performAction() {
         }
     }
 
