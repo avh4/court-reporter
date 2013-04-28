@@ -1,6 +1,8 @@
 package net.avh4.test.courtreporter;
 
+import net.avh4.test.courtreporter.test.TestInterface;
 import net.avh4.test.courtreporter.test.TestObject;
+import net.avh4.test.courtreporter.test.TestObjectWithFinalMethod;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -147,6 +149,13 @@ public class CourtReporterTest {
     public void shouldRecordProtectedMethod() {
         TestObject.callProtectedMethod(object);
         assertThat(recording.toString()).isEqualTo("$.protectedMethod()\n");
+    }
+
+    @Test
+    public void classWithFinalMethods_shouldRecord() {
+        TestInterface o = subject.wrapObject(new TestObjectWithFinalMethod(), TestInterface.class, recording, "$");
+        o.performAction();
+        assertThat(recording.toString()).isEqualTo("$.performAction()\n");
     }
 
     public static class MyItem {

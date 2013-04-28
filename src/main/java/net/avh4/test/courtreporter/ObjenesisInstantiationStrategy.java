@@ -6,6 +6,7 @@ import net.sf.cglib.proxy.Factory;
 import net.sf.cglib.proxy.MethodInterceptor;
 import org.objenesis.ObjenesisStd;
 
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 
 class ObjenesisInstantiationStrategy implements InstantiationStrategy {
@@ -13,7 +14,15 @@ class ObjenesisInstantiationStrategy implements InstantiationStrategy {
 
     @Override
     public boolean isValid(Class<?> typeToCreate) {
-        if (Modifier.isFinal(typeToCreate.getModifiers())) return false;
+        if (Modifier.isFinal(typeToCreate.getModifiers())) {
+            return false;
+        }
+        for (Method method : typeToCreate.getMethods()) {
+            if (method.getDeclaringClass() == Object.class) continue;
+            if (Modifier.isFinal(method.getModifiers())) {
+                return false;
+            }
+        }
         return true;
     }
 
