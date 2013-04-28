@@ -86,7 +86,7 @@ public class CourtReporterTest {
 
     @Test
     public void string_shouldNotRecord() {
-        final String o = subject.wrapObject("String", String.class, recording, "$");
+        final String o = subject.wrapObject("String", recording, "$");
 
         //noinspection ResultOfMethodCallIgnored
         o.charAt(0);
@@ -96,7 +96,7 @@ public class CourtReporterTest {
 
     @Test
     public void string_asSuperclass_shouldNotRecord() {
-        final Object o = subject.wrapObject("String", Object.class, recording, "$");
+        final Object o = subject.wrapObject("String", recording, "$");
 
         //noinspection ResultOfMethodCallIgnored
         o.hashCode();
@@ -106,14 +106,14 @@ public class CourtReporterTest {
 
     @Test
     public void string_asSuperclass_shouldBeAString() {
-        final Object o = subject.wrapObject("String", Object.class, recording, "$");
+        final Object o = subject.wrapObject("String", recording, "$");
 
         assertThat(o).isInstanceOf(String.class);
     }
 
     @Test
     public void someClass_shouldRecord() {
-        final TestClass o = subject.wrapObject(new TestClass(), TestClass.class, recording, "$");
+        final TestClass o = subject.wrapObject(new TestClass(), recording, "$");
 
         o.performAction();
 
@@ -122,21 +122,21 @@ public class CourtReporterTest {
 
     @Test
     public void someClass_asSuperclass_shouldBeOriginalClass() {
-        final Object o = subject.wrapObject(new TestClass(), Object.class, recording, "$");
+        final Object o = subject.wrapObject(new TestClass(), recording, "$");
 
         assertThat(o).isInstanceOf(TestClass.class);
     }
 
     @Test
     public void someClassWithProtectedConstructor_asSuperclass_shouldBeOriginalClass() {
-        final Object o = subject.wrapObject(new PrivateTestClass("key"), Object.class, recording, "$");
+        final Object o = subject.wrapObject(new PrivateTestClass("key"), recording, "$");
 
         assertThat(o).isInstanceOf(PrivateTestClass.class);
     }
 
     @Test
     public void someClassWithUncallableConstructor_shouldRecord() {
-        final TestClass o = subject.wrapObject(new UncallableConstructorTestClass(), TestClass.class, recording, "$");
+        final TestClass o = subject.wrapObject(new UncallableConstructorTestClass(), recording, "$");
 
         o.performAction();
 
@@ -151,14 +151,14 @@ public class CourtReporterTest {
 
     @Test
     public void classWithFinalMethods_shouldRecord() {
-        TestInterface o = subject.wrapObject(new TestObjectWithFinalMethod(), TestInterface.class, recording, "$");
+        TestInterface o = subject.wrapObject(new TestObjectWithFinalMethod(), recording, "$");
         o.performAction();
         assertThat(recording.toString()).isEqualTo("$.performAction()\n");
     }
 
     @Test
     public void someFinalClass_shouldImplementInterfaces() {
-        Object o = subject.wrapObject(new RegularImmutableMap(), Object.class, recording, "$");
+        Object o = subject.wrapObject(new RegularImmutableMap(), recording, "$");
         assertThat(o).isInstanceOf(Map.class);
     }
 

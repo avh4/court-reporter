@@ -2,7 +2,6 @@ package net.avh4.test.courtreporter;
 
 import com.google.common.collect.ImmutableList;
 
-import java.lang.reflect.Modifier;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
@@ -18,25 +17,21 @@ public class CourtReporter {
     private final InstantiationStrategy instantiationStrategy = new ObjenesisInstantiationStrategy();
 
     public <T> T wrapObject(T objectToWrap, StringBuffer recording) {
-        //noinspection unchecked
-        final Class<T> typeToReturn = (Class<T>) objectToWrap.getClass();
-        return wrapObject(objectToWrap, typeToReturn, recording, "$");
+        return wrapObject(objectToWrap, recording, "$");
     }
 
-    public <T extends R, R> R wrapObject(T objectToWrap, Class<R> typeToReturn, StringBuffer recording, String objectName) {
+    public <T extends R, R> R wrapObject(T objectToWrap, StringBuffer recording, String objectName) {
         if (objectToWrap == null) {
             return null;
-        } else if (Modifier.isFinal(typeToReturn.getModifiers())) {
-            return objectToWrap;
         } else if (NUMBER_CLASSES.contains(objectToWrap.getClass())
                 || STRING_CLASSES.contains(objectToWrap.getClass())) {
             return objectToWrap;
         } else {
-            return createWrappedObject(objectToWrap, typeToReturn, recording, objectName);
+            return createWrappedObject(objectToWrap, recording, objectName);
         }
     }
 
-    private <T extends R, R> R createWrappedObject(T objectToWrap, Class<R> typeToReturn, StringBuffer recording, String objectName) {
+    private <T extends R, R> R createWrappedObject(T objectToWrap, StringBuffer recording, String objectName) {
         @SuppressWarnings("unchecked")
         final Class<? extends T> actualType = (Class<? extends T>) objectToWrap.getClass();
         final RecordingMethodInterceptor interceptor = new RecordingMethodInterceptor(this, objectToWrap, recording, objectName);
@@ -49,6 +44,6 @@ public class CourtReporter {
         for (Class<?> c = actualType; c != null; c = c.getSuperclass()) {
             interfaces.addAll(Arrays.asList(c.getInterfaces()));
         }
-        return instantiationStrategy.execute(typeToReturn, interceptor, interfaces.toArray(new Class[0]));
+        return instantiationStrategy.execute(null, interceptor, interfaces.toArray(new Class[0]));
     }
 }

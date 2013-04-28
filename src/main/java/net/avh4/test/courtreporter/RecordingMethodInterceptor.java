@@ -40,8 +40,7 @@ class RecordingMethodInterceptor implements MethodInterceptor {
 
         recording.append('\n');
 
-        final Class returnValueClass = method.getReturnType();
-        return factory.wrapObject(returnValue, returnValueClass, recording, stringForObject(returnValue));
+        return factory.wrapObject(returnValue, recording, stringForObject(returnValue));
     }
 
     private void appendObject(Object object) {
