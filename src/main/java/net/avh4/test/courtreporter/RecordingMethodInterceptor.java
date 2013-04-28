@@ -1,18 +1,21 @@
 package net.avh4.test.courtreporter;
 
+import net.avh4.test.courtreporter.representation.ObjectRep;
+import net.avh4.test.courtreporter.representation.Rep;
 import net.sf.cglib.proxy.MethodInterceptor;
 import net.sf.cglib.proxy.MethodProxy;
 
 import java.lang.reflect.Method;
 
-class RecordingMethodInterceptor implements MethodInterceptor {
+public class RecordingMethodInterceptor implements MethodInterceptor {
 
     private final CourtReporter factory;
-    private final Object originalObject;
-    private final StringBuffer recording;
-    private final String objectName;
 
-    RecordingMethodInterceptor(CourtReporter factory, Object originalObject, StringBuffer recording, String objectName) {
+    private final Object originalObject;
+    private final RecordingReporter recording;
+    private final ObjectRep objectName;
+
+    RecordingMethodInterceptor(CourtReporter factory, Object originalObject, RecordingReporter recording, ObjectRep objectName) {
         this.factory = factory;
         this.originalObject = originalObject;
         this.recording = recording;
@@ -24,38 +27,38 @@ class RecordingMethodInterceptor implements MethodInterceptor {
         method.setAccessible(true);
         final Object returnValue = method.invoke(originalObject, args);
 
-        recording.append(objectName);
-        recording.append(".");
-        recording.append(method.getName());
-        recording.append('(');
-        if (args.length > 0) {
-            appendObject(args[0]);
-        }
-        recording.append(')');
+        final Rep[] argStrings = args.length > 0
+                ? new Rep[]{valueForObject(method.getParameterTypes()[0], args[0])}
+                : new Rep[]{};
+        final Rep returnToken;
+        returnToken = valueForObject(method.getReturnType(), returnValue);
+        recording.methodCall(objectName, method.getName(), returnToken, argStrings);
 
-        if (method.getReturnType() != Void.TYPE) {
-            recording.append(" -> ");
-            appendObject(returnValue);
-        }
-
-        recording.append('\n');
-
-        return factory.wrapObject(returnValue, recording, stringForObject(returnValue));
+        if (returnValue == null) return null;
+        return factory.wrapObject(returnValue, recording, nameForObject(returnValue));
     }
 
-    private void appendObject(Object object) {
-        recording.append(stringForObject(object));
-    }
-
-    private static String stringForObject(Object object) {
+    private static Rep valueForObject(Class<?> type, Object object) {
+        if (type == Void.TYPE) {
+            return Rep.VOID;
+        }
         if (object == null) {
-            return "(null)";
-        } else if (CourtReporter.STRING_CLASSES.contains(object.getClass())) {
-            return "\"" + object + "\"";
-        } else if (CourtReporter.NUMBER_CLASSES.contains(object.getClass())) {
-            return object.toString();
-        } else {
-            return "<" + object.toString() + ">";
+            return Rep.NULL;
         }
+        if (type == Integer.TYPE) {
+            return Rep.integer((Integer) object);
+        } else if (CourtReporter.STRING_CLASSES.contains(object.getClass())) {
+            return Rep.string((String) object);
+        } else {
+            return Rep.object(object, nameForObject(object));
+        }
+    }
+
+    private static String nameForObject(Object object) {
+        return "A";
+    }
+
+    public Object getOriginalObject() {
+        return originalObject;
     }
 }

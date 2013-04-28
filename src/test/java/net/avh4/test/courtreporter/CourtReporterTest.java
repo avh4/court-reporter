@@ -1,21 +1,28 @@
 package net.avh4.test.courtreporter;
 
+import net.avh4.test.courtreporter.representation.ObjectRep;
+import net.avh4.test.courtreporter.representation.Rep;
 import net.avh4.test.courtreporter.test.*;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 
 import static org.fest.assertions.Assertions.assertThat;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyZeroInteractions;
 
 public class CourtReporterTest {
 
     private CourtReporter subject;
-    private StringBuffer recording;
+    @Mock
+    private RecordingReporter recording;
     private TestObject originalObject;
     private TestObject object;
 
     @Before
     public void setUp() {
-        recording = new StringBuffer();
+        MockitoAnnotations.initMocks(this);
         subject = new CourtReporter();
         originalObject = new TestObject();
         object = subject.wrapObject(originalObject, recording);
@@ -24,13 +31,13 @@ public class CourtReporterTest {
     @Test
     public void shouldRecordMethodCallWithStringArgument() {
         object.takeString("First Place");
-        assertThat(recording.toString()).isEqualTo("$.takeString(\"First Place\")\n");
+        verify(recording).methodCall(Rep.object(object, "$"), "takeString", Rep.VOID, Rep.string("First Place"));
     }
 
     @Test
     public void shouldRecordMethodCallWithIntArgument() {
         object.takeInt(0);
-        assertThat(recording.toString()).isEqualTo("$.takeInt(0)\n");
+        verify(recording).methodCall(Rep.object(object, "$"), "takeInt", Rep.VOID, Rep.integer(0));
     }
 
     @Test
@@ -51,8 +58,7 @@ public class CourtReporterTest {
         TestObject o = subject.wrapObject(new TestObject(), recording);
         MyItem primaryItem = o.getPrimaryItem();
 
-        assertThat(recording.toString()).isEqualTo("" +
-                "$.getPrimaryItem() -> <" + primaryItem.toString() + ">\n");
+        verify(recording).methodCall(Rep.object(o, "$"), "getPrimaryItem", Rep.object(primaryItem, "A"));
     }
 
     @Test
@@ -61,9 +67,9 @@ public class CourtReporterTest {
         MyItem primaryItem = o.getPrimaryItem();
         primaryItem.post();
 
-        assertThat(recording.toString()).isEqualTo("" +
-                "$.getPrimaryItem() -> <" + primaryItem.toString() + ">\n" +
-                "<" + primaryItem.toString() + ">.post()\n");
+        final ObjectRep a = Rep.object(primaryItem, "A");
+        verify(recording).methodCall(Rep.object(o, "$"), "getPrimaryItem", a);
+        verify(recording).methodCall(a, "post", Rep.VOID);
     }
 
     @Test
@@ -72,16 +78,15 @@ public class CourtReporterTest {
         net.avh4.test.courtreporter.test.TestInterface object = o.getFinalObject();
         object.performAction();
 
-        assertThat(recording.toString()).isEqualTo("" +
-                "$.getFinalObject() -> <" + object.toString() + ">\n" +
-                "<" + object.toString() + ">.performAction()\n");
+        final ObjectRep a = Rep.object(object, "A");
+        verify(recording).methodCall(Rep.object(o, "$"), "getFinalObject", a);
+        verify(recording).methodCall(a, "performAction", Rep.VOID);
     }
 
     @Test
     public void shouldRecordNullValue() {
         object.takeString(null);
-        assertThat(recording.toString()).isEqualTo("" +
-                "$.takeString((null))\n");
+        verify(recording).methodCall(Rep.object(originalObject, "$"), "takeString", Rep.VOID, Rep.NULL);
     }
 
     @Test
@@ -91,7 +96,7 @@ public class CourtReporterTest {
         //noinspection ResultOfMethodCallIgnored
         o.charAt(0);
 
-        assertThat(recording.toString()).isEmpty();
+        verifyZeroInteractions(recording);
     }
 
     @Test
@@ -101,7 +106,7 @@ public class CourtReporterTest {
         //noinspection ResultOfMethodCallIgnored
         o.hashCode();
 
-        assertThat(recording.toString()).isEmpty();
+        verifyZeroInteractions(recording);
     }
 
     @Test
@@ -113,11 +118,12 @@ public class CourtReporterTest {
 
     @Test
     public void someClass_shouldRecord() {
-        final TestClass o = subject.wrapObject(new TestClass(), recording, "$");
+        final TestClass original = new TestClass();
+        final TestClass o = subject.wrapObject(original, recording, "$");
 
         o.performAction();
 
-        assertThat(recording.toString()).isEqualTo("$.performAction()\n");
+        verify(recording).methodCall(Rep.object(original, "$"), "performAction", Rep.VOID);
     }
 
     @Test
@@ -140,20 +146,20 @@ public class CourtReporterTest {
 
         o.performAction();
 
-        assertThat(recording.toString()).isEqualTo("$.performAction()\n");
+        verify(recording).methodCall(Rep.object(o, "$"), "performAction", Rep.VOID);
     }
 
     @Test
     public void shouldRecordProtectedMethod() {
         TestObject.callProtectedMethod(object);
-        assertThat(recording.toString()).isEqualTo("$.protectedMethod()\n");
+        verify(recording).methodCall(Rep.object(object, "$"), "protectedMethod", Rep.VOID);
     }
 
     @Test
     public void classWithFinalMethods_shouldRecord() {
         TestInterface o = subject.wrapObject(new TestObjectWithFinalMethod(), recording, "$");
         o.performAction();
-        assertThat(recording.toString()).isEqualTo("$.performAction()\n");
+        verify(recording).methodCall(Rep.object(o, "$"), "performAction", Rep.VOID);
     }
 
     @Test

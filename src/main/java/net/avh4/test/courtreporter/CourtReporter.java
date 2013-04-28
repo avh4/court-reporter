@@ -1,6 +1,8 @@
 package net.avh4.test.courtreporter;
 
 import com.google.common.collect.ImmutableList;
+import net.avh4.test.courtreporter.representation.ObjectRep;
+import net.avh4.test.courtreporter.representation.Rep;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -16,11 +18,11 @@ public class CourtReporter {
 
     private final InstantiationStrategy instantiationStrategy = new ObjenesisInstantiationStrategy();
 
-    public <T> T wrapObject(T objectToWrap, StringBuffer recording) {
+    public <T> T wrapObject(T objectToWrap, RecordingReporter recording) {
         return wrapObject(objectToWrap, recording, "$");
     }
 
-    public <T extends R, R> R wrapObject(T objectToWrap, StringBuffer recording, String objectName) {
+    public <T extends R, R> R wrapObject(T objectToWrap, RecordingReporter recording, String objectName) {
         if (objectToWrap == null) {
             return null;
         } else if (NUMBER_CLASSES.contains(objectToWrap.getClass())
@@ -31,10 +33,11 @@ public class CourtReporter {
         }
     }
 
-    private <T extends R, R> R createWrappedObject(T objectToWrap, StringBuffer recording, String objectName) {
+    private <T extends R, R> R createWrappedObject(T objectToWrap, RecordingReporter recording, String objectName) {
         @SuppressWarnings("unchecked")
         final Class<? extends T> actualType = (Class<? extends T>) objectToWrap.getClass();
-        final RecordingMethodInterceptor interceptor = new RecordingMethodInterceptor(this, objectToWrap, recording, objectName);
+        ObjectRep object = Rep.object(objectToWrap, objectName);
+        final RecordingMethodInterceptor interceptor = new RecordingMethodInterceptor(this, objectToWrap, recording, object);
 
         if (instantiationStrategy.isValid(actualType)) {
             return instantiationStrategy.execute(actualType, interceptor, new Class[0]);
