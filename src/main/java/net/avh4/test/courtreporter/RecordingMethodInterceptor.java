@@ -27,15 +27,19 @@ public class RecordingMethodInterceptor implements MethodInterceptor {
         method.setAccessible(true);
         final Object returnValue = method.invoke(originalObject, args);
 
-        final Rep[] argStrings = args.length > 0
-                ? new Rep[]{valueForObject(method.getParameterTypes()[0], args[0])}
-                : new Rep[]{};
+        final Rep[] argStrings = repsForArgs(method, args);
         final Rep returnToken;
         returnToken = valueForObject(method.getReturnType(), returnValue);
         recording.methodCall(objectName, method.getName(), returnToken, argStrings);
 
         if (returnValue == null) return null;
         return factory.wrapObject(returnValue, recording, nameForObject(returnValue));
+    }
+
+    public static Rep[] repsForArgs(Method method, Object[] args) {
+        return args.length > 0
+                ? new Rep[]{valueForObject(method.getParameterTypes()[0], args[0])}
+                : new Rep[]{};
     }
 
     private static Rep valueForObject(Class<?> type, Object object) {

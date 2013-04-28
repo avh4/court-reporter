@@ -1,6 +1,6 @@
 package net.avh4.test.courtreporter.representation;
 
-class IntegerRep extends Rep {
+public class IntegerRep extends Rep {
     private final int value;
 
     public IntegerRep(int value) {
@@ -27,5 +27,9 @@ class IntegerRep extends Rep {
     @Override
     public String toString() {
         return "INT(" + value + ")";
+    }
+
+    public int getValue() {
+        return value;
     }
 }

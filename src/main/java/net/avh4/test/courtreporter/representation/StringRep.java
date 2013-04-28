@@ -2,7 +2,7 @@ package net.avh4.test.courtreporter.representation;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
-class StringRep extends Rep {
+public class StringRep extends Rep {
     private final String value;
 
     public StringRep(String value) {
@@ -30,5 +30,9 @@ class StringRep extends Rep {
     @Override
     public String toString() {
         return "STRING(" + value + ")";
+    }
+
+    public String getValue() {
+        return value;
     }
 }
